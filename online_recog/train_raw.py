@@ -7,7 +7,7 @@ import tensorflow
 from keras import backend as K
 from keras import layers
 from keras.callbacks import Callback
-from keras.layers import LSTM
+from keras.layers import LSTM, Bidirectional, BatchNormalization
 from keras.utils import Sequence
 import numpy as np
 
@@ -26,7 +26,7 @@ def populate_data_names(fil):
 
 # TODO parse data into self.x and self.y, and split them into train, validation. Testdata is avalable in another subdirectory
 
-class InkMLSequence(Sequence):
+class InkMLSequence(Sequence): # https://gist.github.com/alxndrkalinin/6cc4228e9178ec4af7b2696a0d1ad5a1
 	
 	def __init__(self, batch_size=1):  # batch size is one because one matrix is several traces
 		self.batch_size = batch_size
@@ -51,5 +51,11 @@ class InkMLSequence(Sequence):
 if __name__ == '__main__':
 	s = InkMLSequence()
 	print(len(s.x_name))
-# model = Sequential()
-# model.add(Bidirectional(LSTM(20, return_sequences=True), input_shape =()))
+	model = Sequential()
+	model.add(LSTM(input_shape=(None, None), return_sequences=True))
+	model.add(Dropout(0.2))
+	model.add(LSTM(input_shape=(None, None), return_sequences=True))
+	model.add(Dropout(0.2))
+	
+	
+	

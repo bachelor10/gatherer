@@ -69,6 +69,7 @@ def model_fn(features, labels, mode, params):
 		x = keras.layers.Gru()
 
 
+# https://stackoverflow.com/questions/42184863/how-do-you-make-tensorflow-keras-fast-with-a-tfrecord-dataset
 def read_and_decode_rec(tf_glob, one_hot=True, classes=None, is_predict=False,
 						batch_shape=(64, 270, 2, 1), parallelism=1):
 	print("Creating graph for %s TFRecords..." % tf_glob)
@@ -95,7 +96,9 @@ def read_and_decode_rec(tf_glob, one_hot=True, classes=None, is_predict=False,
 				labels.append(label)
 		
 		print("\n")
-		
+		#data = tf.parallel_stack(data,0)
+		#labels = tf.parallel_stack(labels, 0)
+		data = tf.cast(data, tf.float32)
 		return data, labels
 
 

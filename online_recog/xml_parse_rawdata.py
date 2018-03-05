@@ -22,7 +22,6 @@ from machine_learning.xml_parse import format_trace, find_segments
 random.seed(87734961265)
 
 
-
 def plot_trace(trace):  # trace is x,y coordinates
 	plt.plot(trace[:, 0], trace[:, 1])
 	axes = plt.gca()
@@ -56,8 +55,8 @@ def find_tracelength(trace):
 # this method is meant to parse a segment, sequentially return data and truth
 # https://www.tensorflow.org/versions/master/tutorials/recurrent_quickdraw
 def parse_single_segment(segment):  # segment object
-	truth = segment.truth
-	traces = segment.traces
+	truth = segment['truth']
+	traces = segment['traces']
 	stroke_lengths = find_tracelength(traces)
 	total_points = sum(stroke_lengths)
 	np_ink = np.zeros((total_points, 3), dtype=np.float32)
@@ -98,7 +97,9 @@ def seg_to_tfexample(filename, writer=None, t_writer=None, directory=None):
 			if file.endswith(".inkml"):
 				root = get_inkml_root(directory + file)
 				segm = find_segments(root)
+				print(segm[0])
 				for i, t in enumerate(segm):
+					print(type(t))
 					tf_ex, truth = parse_single_segment(t)
 					
 					if truth not in truths and truth is not None:
@@ -154,7 +155,7 @@ def parse_segment_to_array(directory, is_predict=False, clean=False, _file='raw'
 		# valid_file = h5py.File('raw_validate', 'w')
 		dataset_num = 0
 		for file in os.listdir(directory):
-			#print(file)
+			# print(file)
 			if file.endswith(".inkml"):
 				root = get_inkml_root(directory + file)
 				
@@ -169,7 +170,7 @@ def parse_segment_to_array(directory, is_predict=False, clean=False, _file='raw'
 						curr_truths.append(truths.index(truth))
 				
 				data_out = format_row(data)
-				#print("Creating dataset DATA_{}".format(dataset_num))
+				# print("Creating dataset DATA_{}".format(dataset_num))
 				outfile.create_dataset("DATA_{}".format(dataset_num), data=data_out)
 				classfile.create_dataset("TRUTH_{}".format(dataset_num), data=curr_truths)
 				curr_truths = []
@@ -197,10 +198,17 @@ if __name__ == '__main__':
 	# root = get_inkml_root('01.inkml')
 	# segments = find_segments(root)  # gets a list of Segment objects
 	print("")
+	t_writer = tf.python_io.TFRecordWriter(os.curdir + "/TF_R/GT_T.tfrecords")
+	writer = tf.python_io.TFRecordWriter(os.curdir + "/TF_R/GT.tfrecords")
+	seg_to_tfexample(filename=os.curdir + "/TF_R/GT", writer=writer, t_writer=t_writer,
+					 directory=os.curdir + "/BACHELOR_DATA/GT/")
 	
-	# print(segments)
-	# consecutive_segments(segments)
-	#parse_segment_to_array(os.curdir + "/BACHELOR_DATA/GT/", clean=False)
+	writer.close()
+	t_writer.close()
+
+# print(segments)
+# consecutive_segments(segments)
+# parse_segment_to_array(os.curdir + "/BACHELOR_DATA/GT/", clean=False)
 
 '''
 				if random.uniform(0, 1) > 0.8:
