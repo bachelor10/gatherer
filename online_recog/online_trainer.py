@@ -156,16 +156,16 @@ if __name__ == '__main__':
 			   '\\exists', '\\forall', '\\geq', 'h']
 	num_classes = len(classes)
 	epochs = 5
-	x_batch_shape = [64, 270, 2, 1]
+	x_batch_shape = [64, 500, 500, 1]
 	
 	x_train_batch, y_train_batch = read_and_decode_rec(
-		'GT.tfrecords',
+		'./TF_R/GT.tfrecords',
 		one_hot=True,
 		classes=num_classes,
 		batch_shape=x_batch_shape
 	)
 	x_test_batch, y_test_batch = read_and_decode_rec(
-		'GT_T.tfrecords',
+		'./TF_R/GT_T.tfrecords',
 		one_hot=True,
 		classes=num_classes,
 		batch_shape=x_batch_shape
@@ -173,4 +173,23 @@ if __name__ == '__main__':
 	print(x_train_batch)
 	print(type(x_batch_shape))
 	x_train_input = Input(tensor=x_train_batch, batch_shape=x_batch_shape)
+	x_train_out = add_cnn_layers(x_train_input)
+	y_train_input = Input(tensor=y_train_batch, batch_shape=x_batch_shape, name='y_labels')
+	cce = categorical_crossentropy(y_train_batch, x_train_out)
+	train_model = Model(inputs=[x_train_input], outputs=[x_train_out])
+	
+	train_model.add_loss(cce)
+	train_model.compile(optimizer='adam',
+						loss=None,
+						metrics=['accuracy'])
+	train_model.summary()
+	
+	tensorboard = TensorBoard()
+	train_model.fit(batch_size=x_batch_shape[0],
+					epochs=epochs, callbacks=[tensorboard])
+	train_model.save_weights('./Model/saved_wt.h5')
+	train_model.save('./Model/model.h5')
+	
+	
+	K.clear_session()
 	#x_train_out =

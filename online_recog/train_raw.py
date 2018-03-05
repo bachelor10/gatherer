@@ -7,7 +7,7 @@ import tensorflow
 from keras import backend as K
 from keras import layers
 from keras.callbacks import Callback
-from keras.layers import LSTM, Bidirectional, BatchNormalization
+from keras.layers import LSTM, Bidirectional, BatchNormalization, Activation, Embedding
 from keras.utils import Sequence
 import numpy as np
 
@@ -49,13 +49,21 @@ class InkMLSequence(Sequence): # https://gist.github.com/alxndrkalinin/6cc4228e9
 
 
 if __name__ == '__main__':
-	s = InkMLSequence()
-	print(len(s.x_name))
+	epochs = 5
+	verbose = 1
+	
+	train_generator = InkMLSequence()
+	print(len(train_generator.x_name))
 	model = Sequential()
-	model.add(LSTM(input_shape=(None, None), return_sequences=True))
+	model.add(Embedding(1,None,mask_zero=True))
+	model.add(LSTM(input_shape=(train_generator.batch_size, None), return_sequences=True))
 	model.add(Dropout(0.2))
-	model.add(LSTM(input_shape=(None, None), return_sequences=True))
+	model.add(LSTM(input_shape=(train_generator.batch_size, None), return_sequences=True))
 	model.add(Dropout(0.2))
+	model.add(Activation('softmax'))
 	
-	
+	model.fit(
+		train_generator,
+		epochs=epochs
+	)
 	
