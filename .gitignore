@@ -104,5 +104,11 @@ ENV/
 .idea/
 
 /machine_learning/data/
+/machine_learning/images
 /machine_learning/validation/
 /machine_learning/train/
+/machine_learning/preview/
+/machine_learning/train2/
+/machine_learning/validation2/
+/machine_learning/my_model.h5
+.vscode/settings.json

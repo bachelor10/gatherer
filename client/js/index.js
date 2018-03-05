@@ -18,16 +18,16 @@ function MessageService (ws) {
     }.bind(this);
 
     ws.onmessage = function (message) {
-        alert(message.data);
+        console.log("Message", message)
         if(typeof this.onMessage === 'function'){
-            this.onMessage(JSON.parse(message));
+            console.log("Sending mes", message)
+            this.onMessage(message.data);
         }
     }.bind(this)
 
 }
 
 MessageService.prototype.send = function(message){
-    console.log("Sending message", message)
     if(this.isOpen){
         this.ws.send(JSON.stringify(message));
     }
@@ -72,6 +72,7 @@ function Canvas(DOMElement) {
 
 Canvas.prototype.drawLine = function (x1, y1, x2, y2) {
     this.context.lineWidth=5;
+    this.context.strokeStyle="#A0A3A6";
     this.context.beginPath();
     this.context.moveTo(x1, y1);
     this.context.lineTo(x2,y2);
@@ -106,13 +107,15 @@ Canvas.prototype.onMouseMove = function (event) {
             thisY = event.targetTouches[0].pageY - rect.top;
         }
 
+        //Dispatch a message if onDraw is specified
+        typeof this.onDraw === 'function' && this.onDraw(thisX, thisY);
+
+
         //If this is not the first press
         if(this.prevX && this.prevY){
             //Draw on canvas
             this.drawLine(this.prevX, this.prevY, thisX, thisY);
 
-            //Then dispatch a message if onDraw is specified
-            typeof this.onDraw === 'function' && this.onDraw(this.prevX, this.prevY, thisX, thisY);
 
         }
         //Store last position
@@ -135,16 +138,20 @@ Canvas.prototype.onMouseUp = function (event) {
     // increment traceid
     this.traceId++;
 
+    console.log("On mouse up!");
+    this.onComplete(this.DOMElement[0].toDataURL());
+
 
     this.releaseTimeout = setTimeout(function () {
+        /*
         if(this.isMouseDown === false){
             this.onComplete(this.DOMElement[0].toDataURL());
 
             //Clear canvas and release timeout
-            this.context.clearRect(0,0, this.context.canvas.width, this.context.canvas.height);
+            //this.context.clearRect(0,0, this.context.canvas.width, this.context.canvas.height);
             this.releaseTimeout = null;
             this.traceId = 0;
-        }
+        }*/
     }.bind(this), 2000)
 };
 
@@ -189,13 +196,35 @@ $(document).ready(function () {
 
     //Get canvas and prepare
 
+    //Fill page screen
+    var pageContainer = $(".page-container");
+    pageContainer.css('height', window.innerHeight)
+
     var canvas = new Canvas($("#canvas"));
 
-    var equation = $("#equation");
-    console.log("EQ1", equation);
-    console.log("EQ2", equation[0]);
+    var equation = $("#latex");
+    var equationRaw = $("#latexRaw");
+
+    var updateBtn = $("#update");
+
+    updateBtn.click(function (e) {
+        location.reload()
+    });
+    var awaitingMessages = 0;
+
 
     var messageService = new MessageService(new WebSocket('ws://localhost:8080/ws'));
+
+    messageService.onMessage = function (message) {
+        console.log("Got message", message);
+        awaitingMessages -= 1;
+        if(awaitingMessages === 0){
+            updateBtn.removeClass('rotating');
+        }
+        katex.render(message, equation[0]);
+        equationRaw.text(message)
+
+    };
 
     canvas.onDraw = function (x1, y1, x2, y2) {
         messageService.send(
@@ -206,27 +235,14 @@ $(document).ready(function () {
             })
     };
 
-    // sends an end to the server, this consists of an msg and an id. id represents trace id in trace group
-    // TODO Delete this ( ? ) (this method shouldnt be needed anymore, validate.)
-    /*canvas.onCompleteBuffer = function () {
-        messageService.send(
-            {
-                status: 201, // http 201 Created
-                traceid: this.traceId,
-                uuid: uuid
-            }
-        )
-    };*/
-
-
 
     //Canvas has not been touched in 1 second
     canvas.onComplete = function (dataURL) {
-        equation.text("");
+        updateBtn.addClass('rotating');
+        awaitingMessages += 1;
         messageService.send(
             {
                 status: 201, // http 201 Created
-                traceid: this.traceId,
                 uuid: uuid
             }
         );
@@ -236,8 +252,6 @@ $(document).ready(function () {
             if(error){
                 return handleError(error)
             }
-
-            equation.text(result.equation);
 
         });
     };
@@ -250,7 +264,6 @@ $(document).ready(function () {
         console.log("Equation", result.equation);
         console.log("UUID", result.uuid);
 
-        equation.text(result.equation);
         uuid = result.uuid;
 
     })
