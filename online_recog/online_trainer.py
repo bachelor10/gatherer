@@ -96,8 +96,8 @@ def read_and_decode_rec(tf_glob, one_hot=True, classes=None, is_predict=False,
 				labels.append(label)
 		
 		print("\n")
-		#data = tf.parallel_stack(data,0)
-		#labels = tf.parallel_stack(labels, 0)
+		# data = tf.parallel_stack(data,0)
+		# labels = tf.parallel_stack(labels, 0)
 		data = tf.cast(data, tf.float32)
 		return data, labels
 
@@ -129,7 +129,9 @@ def find_classes(filename=None):
 			classes.append(line.rstrip())
 	return classes, len(classes)
 
+
 def add_cnn_layers(x_train):
+	print(x_train)
 	x = keras.layers.BatchNormalization()(x_train)
 	x = keras.layers.Conv1D(filter=48, kernel_size=5, activation='relu', padding='valid')(x)
 	x = keras.layers.Dropout(0.3)(x)
@@ -140,7 +142,8 @@ def add_cnn_layers(x_train):
 	x = keras.layers.Conv1D(filter=96, kernel_size=3)(x)
 	x = keras.layers.Flatten()(x)
 	return x
-	
+
+
 def add_rnn_layers(x_train):
 	print("HW")
 
@@ -156,7 +159,7 @@ if __name__ == '__main__':
 			   '\\exists', '\\forall', '\\geq', 'h']
 	num_classes = len(classes)
 	epochs = 5
-	x_batch_shape = [64, 500, 500, 1]
+	x_batch_shape = [64, -1, -1, -1]
 	
 	x_train_batch, y_train_batch = read_and_decode_rec(
 		'./TF_R/GT.tfrecords',
@@ -190,6 +193,5 @@ if __name__ == '__main__':
 	train_model.save_weights('./Model/saved_wt.h5')
 	train_model.save('./Model/model.h5')
 	
-	
 	K.clear_session()
-	#x_train_out =
+# x_train_out =

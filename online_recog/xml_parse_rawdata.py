@@ -37,8 +37,6 @@ def plot_sequential(trace):
 
 
 def consecutive_segments(segm):
-	# print("SEGM", segm)
-	# print(type(segm))
 	for i, t in enumerate(segm):
 		print(t.truth)
 		if True:
@@ -54,9 +52,10 @@ def find_tracelength(trace):
 
 # this method is meant to parse a segment, sequentially return data and truth
 # https://www.tensorflow.org/versions/master/tutorials/recurrent_quickdraw
+# TODO make sure code is acceptible to MIT standards.
 def parse_single_segment(segment):  # segment object
-	truth = segment['truth']
-	traces = segment['traces']
+	truth = segment.truth
+	traces = segment.traces
 	stroke_lengths = find_tracelength(traces)
 	total_points = sum(stroke_lengths)
 	np_ink = np.zeros((total_points, 3), dtype=np.float32)
@@ -69,7 +68,7 @@ def parse_single_segment(segment):  # segment object
 		np_ink[it:(it + len(trace)), 0:2] = trace
 		it += len(trace)
 		np_ink[it - 1, 2] = 1  # stroke end
-	# print("LOWER FAILS: ", np_ink)
+
 	lower = np.min(np_ink[:, 0:2], axis=0)
 	upper = np.max(np_ink[:, 0:2], axis=0)
 	
@@ -78,8 +77,7 @@ def parse_single_segment(segment):  # segment object
 	relation_between = upper - lower
 	relation_between[relation_between == 0] = 1
 	np_ink[:, 0:2] = (np_ink[:, 0:2] - lower) / relation_between
-	
-	np_ink = np_ink[1:, 0:2] - np_ink[0:-1, 0:2]
+	np_ink[1:, 0:2] -= - np_ink[0:-1, 0:2]
 	np_ink = np_ink[1:, :]
 	return np_ink, truth
 
@@ -87,7 +85,7 @@ def parse_single_segment(segment):  # segment object
 def get_inkml_root(file):
 	return ET.parse(file).getroot()
 
-
+# TODO find out if this can be used, because we are using an MIT license.
 def seg_to_tfexample(filename, writer=None, t_writer=None, directory=None):
 	truths = []
 	print("Trying to write segments to file.")
@@ -97,7 +95,6 @@ def seg_to_tfexample(filename, writer=None, t_writer=None, directory=None):
 			if file.endswith(".inkml"):
 				root = get_inkml_root(directory + file)
 				segm = find_segments(root)
-				print(segm[0])
 				for i, t in enumerate(segm):
 					print(type(t))
 					tf_ex, truth = parse_single_segment(t)
@@ -115,7 +112,7 @@ def seg_to_tfexample(filename, writer=None, t_writer=None, directory=None):
 							t_writer.write(ftore.SerializeToString())
 						else:
 							writer.write(ftore.SerializeToString())
-		with tf.gfile.GFile(filename + ".txt", "w", ) as f:
+		with tf.gfile.GFile(filename + ".txt", "w") as f:
 			for t in truths:
 				f.write(t + "\n")
 		return truths
@@ -195,16 +192,20 @@ def parse_segment_to_array(directory, is_predict=False, clean=False, _file='raw'
 
 
 if __name__ == '__main__':
-	# root = get_inkml_root('01.inkml')
-	# segments = find_segments(root)  # gets a list of Segment objects
-	print("")
-	t_writer = tf.python_io.TFRecordWriter(os.curdir + "/TF_R/GT_T.tfrecords")
-	writer = tf.python_io.TFRecordWriter(os.curdir + "/TF_R/GT.tfrecords")
-	seg_to_tfexample(filename=os.curdir + "/TF_R/GT", writer=writer, t_writer=t_writer,
-					 directory=os.curdir + "/BACHELOR_DATA/GT/")
+	root = get_inkml_root('01.inkml')
+	segments = find_segments(root)  # gets a list of Segment objects
+	ex, trt = parse_single_segment(segments[0])
+	print(ex.flatten())
+	# print("")
+	# t_writer = tf.python_io.TFRecordWriter(os.curdir + "/TF_R/GT_T.tfrecords")
+	# writer = tf.python_io.TFRecordWriter(os.curdir + "/TF_R/GT.tfrecords")
+	# seg_to_tfexample(filename=os.curdir + "/TF_R/GT", writer=writer, t_writer=t_writer,
+	# 				 directory=os.curdir + "/BACHELOR_DATA/GT/")
+	#
+	# writer.close()
+	# t_writer.close()
 	
-	writer.close()
-	t_writer.close()
+	
 
 # print(segments)
 # consecutive_segments(segments)
