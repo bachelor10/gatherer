@@ -159,7 +159,7 @@ if __name__ == '__main__':
 			   '\\exists', '\\forall', '\\geq', 'h']
 	num_classes = len(classes)
 	epochs = 5
-	x_batch_shape = [64, -1, -1, -1]
+	x_batch_shape = [64, 550, 1, 1]
 	
 	x_train_batch, y_train_batch = read_and_decode_rec(
 		'./TF_R/GT.tfrecords',
