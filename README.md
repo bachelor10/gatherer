@@ -1,34 +1,15 @@
 # Gatherer
 
-## Gather all the pokemons
+## This was initially meant for gathering data in our bachelors project, it turned out more as a platform for experimenting and working towards our hypothesis, thus it's not something to use other than to get insight into our work. This is not to be delivered.
 
-
-### Prerequesites
-- Python 3.5
-- Pip (To python 3.5)
-- Web Browser
-
-
-### Python packages
-- Tensorflow
-- Keras
-- graphviz
-- pydot
-
-
-### Symbols
--
--
-
-### Who is this meant for?
--
-
-### Goals
-- [x] Interpret single digits
-- [x] Interpret easy arithmetic expressions
-- [x] Simple symbol segmentation (without AI first)
-- [ ] Use AI to segment symbols
-- [ ] Use bidirectional LSTM to use sequential data
-- [ ] Real time analysis
-- [ ] Make model expandable and generic for future integrations
-- [ ] Aquire test data for fractions and/or other wanted and commonly used expressions
+Directories:
+- client
+    - js
+        - index.js (main functionality)
+        - test.js
+    - index.html (simple html with input canvas)
+    - style.css 
+- machine_learning
+    - class_model_v2.py (the main classification file)
+    - the rest is simply parts of our experimentation stages, their names should explain to some extent their purpose
+- 
